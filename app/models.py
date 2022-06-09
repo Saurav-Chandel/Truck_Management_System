@@ -1,5 +1,8 @@
+
 from django.db import models
 from django.contrib.auth.models import User
+import django
+from django.utils.timezone import now
 # Create your models here.
 
 Vehicle_Type = [
@@ -12,15 +15,45 @@ Carriage_Type = [
     ('Cement', 'Cement'),
 ]
 
+class Devices(models.Model):
+    User=models.ForeignKey(to=User,on_delete=models.CASCADE)
+    iOS='iOS'
+    Android='Android'
+    CategoryChoices=[
+        (iOS,'iOS'),
+        (Android,'Android'),
+    ]
+    DeviceToken=models.CharField(max_length=250,blank=True,null=True)
+    DeviceType=models.CharField(max_length=500,choices=CategoryChoices)
+    DateAdded=models.DateTimeField(default=django.utils.timezone.now)
+
+from django.core.validators import RegexValidator
+phone_regex = RegexValidator(regex=r'^\+?1?\d{9,15}$', message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed.")
+class Profile(models.Model):
+    user=models.OneToOneField(User,on_delete=models.CASCADE,primary_key=True)
+
+    is_deleted = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.user.first_name
+
+
 class Add_Vehicle(models.Model):
-    user=models.ForeignKey(User,on_delete=models.CASCADE)
+    user=models.ForeignKey(Profile,on_delete=models.CASCADE,null=True,blank=True)
     vehicle_type=models.CharField(max_length=100,choices=Vehicle_Type,blank=True,null=True)
+    vehicle_image=models.ImageField(upload_to='vehicle_image',blank=True,null=True)
     carriage_type=models.CharField(max_length=100,choices=Carriage_Type,blank=True,null=True)
     vehicle_number=models.CharField(max_length=100,blank=True,null=True)
     insurance_start_date=models.DateTimeField(auto_now=False, auto_now_add=False)
     insurance_close_date=models.DateTimeField(auto_now=False, auto_now_add=False)
     goods_tax=models.BooleanField(default=False)
     permit_tax=models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(default=django.utils.timezone.now)
+    updated_at = models.DateTimeField(default=django.utils.timezone.now)
 
     def __str__(self):
         return self.vehicle_number
@@ -30,8 +63,12 @@ Back_Load_Material = [
     ('B', 'B'),
     ('C', 'C'),
 ]
+
 class Updated_Deisel_Price(models.Model):
     deisel_price=models.CharField(max_length=250,null=True,blank=True)
+
+    def __str__(self):
+        return self.deisel_price
 
 
 class Route(models.Model):
